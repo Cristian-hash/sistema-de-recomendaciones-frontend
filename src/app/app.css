@@ -62,6 +62,47 @@ input[type="text"]::placeholder {
     color: #64748b;
 }
 
+select {
+    padding: 1rem 1.5rem;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    color: #ffffff;
+    font-size: 1rem;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    outline: none;
+}
+
+select option {
+    background: #0f172a;
+    color: white;
+}
+
+.tags-container {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.client-tag {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2rem;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.client-tag:hover,
+.client-tag.active {
+    background: #6366f1;
+    color: white;
+    border-color: #6366f1;
+}
+
 .search-button {
     padding: 1.25rem 2rem;
     background: linear-gradient(to right, #6366f1, #a855f7);
@@ -84,12 +125,13 @@ input[type="text"]::placeholder {
     position: absolute;
     top: 100%;
     left: 0;
-    width: calc(100% - 145px);
-    /* Compensate for button width approx */
+    width: 65%;
+    /* Adjusted width to not cover the button */
     background: #1e293b;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0 0 1rem 1rem;
-    z-index: 100;
+    z-index: 1000;
+    /* Increased Z-index significantly */
     max-height: 300px;
     overflow-y: auto;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);

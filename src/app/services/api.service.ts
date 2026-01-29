@@ -25,4 +25,16 @@ export class ApiService {
     getRecommendations(productId: number): Observable<Producto[]> {
         return this.http.get<Producto[]>(`${this.apiUrl}/${productId}`);
     }
+
+    getSeasonalRecommendations(month: number): Observable<Producto[]> {
+        return this.http.get<Producto[]>(`${this.apiUrl}/seasonal?month=${month}`);
+    }
+
+    getClientRecommendations(clientId: number): Observable<Producto[]> {
+        return this.http.get<Producto[]>(`${this.apiUrl}/client/${clientId}`);
+    }
+
+    getTopClients(): Observable<number[]> {
+        return this.http.get<number[]>(`${this.apiUrl}/clients/top`);
+    }
 }
