@@ -1,0 +1,56 @@
+<div class="container">
+  <header>
+    <h1>Recomendador de Productos</h1>
+    <p class="subtitle">Analizando el historial real para potenciar tus ventas.</p>
+  </header>
+
+  <main>
+    <section class="search-section">
+      <div class="search-input-wrapper">
+        <input type="text" placeholder="¿Qué producto buscas?" [(ngModel)]="searchTerm" (input)="onSearchChange()"
+          (keyup.enter)="onSearchButtonClick()" autocomplete="off">
+        <button class="search-button" (click)="onSearchButtonClick()">
+          BUSCAR
+        </button>
+      </div>
+
+      <div class="results-dropdown" *ngIf="searchResults.length > 0">
+        <div class="result-item" *ngFor="let product of searchResults" (click)="selectProduct(product)">
+          <span class="result-name">{{ product.nombre }}</span>
+          <span class="result-code">{{ product.codigo }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="recommendations-section" *ngIf="selectedProduct">
+      <h2 class="section-title">
+        Recomendaciones para: {{ selectedProduct.nombre }}
+      </h2>
+
+      <div class="loading-state" *ngIf="loading">
+        <p>Analizando patrones de compra...</p>
+      </div>
+
+      <div class="products-grid" *ngIf="!loading && recommendations.length > 0">
+        <div class="product-card" *ngFor="let rec of recommendations">
+          <span class="product-code">{{ rec.codigo }}</span>
+          <h3 class="product-name">{{ rec.nombre }}</h3>
+          <p class="product-desc">{{ rec.descripcion || 'Sin descripción disponible' }}</p>
+          <div class="product-footer">
+            <span class="product-price">{{ rec.ecomPrecio | currency:'S/.' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && recommendations.length === 0">
+        <p>Aún no hay suficientes datos para recomendar productos vinculados a este artículo.</p>
+      </div>
+    </section>
+
+    <section class="initial-state" *ngIf="!selectedProduct && !loading">
+      <div class="empty-state">
+        <p>Escribe el nombre de un producto arriba para comenzar el análisis.</p>
+      </div>
+    </section>
+  </main>
+</div>
