@@ -6,13 +6,17 @@
 
   <main>
     <!-- 1. Recomendador por Producto (Ya existente) -->
+    <!-- 1. Recomendador por Producto (Ya existente) -->
     <section class="search-section">
-      <h2 class="section-title">🔍 Por Producto (Comprados Juntos)</h2>
+      <h2 class="section-title">🤝 Asistente de Venta (Cross-Selling)</h2>
+      <p style="color: #94a3b8; margin-bottom: 2rem;">Indica qué producto se está llevando el cliente y te diremos qué
+        más ofrecerle.</p>
+
       <div class="search-input-wrapper">
-        <input type="text" placeholder="¿Qué producto buscas?" [(ngModel)]="searchTerm" (input)="onSearchChange()"
-          (keyup.enter)="onSearchButtonClick()" autocomplete="off">
+        <input type="text" placeholder="Ingresa el producto que el cliente va a comprar..." [(ngModel)]="searchTerm"
+          (input)="onSearchChange()" (keyup.enter)="onSearchButtonClick()" autocomplete="off">
         <button class="search-button" (click)="onSearchButtonClick()">
-          BUSCAR
+          ANALIZAR
         </button>
       </div>
 
@@ -25,7 +29,8 @@
 
       <!-- Resultados Producto -->
       <div class="recommendations-container" *ngIf="selectedProduct">
-        <h3 class="sub-title">Comprados frecuentemente con: {{ selectedProduct.nombre }}</h3>
+        <h3 class="sub-title" style="color: #818cf8;">💡 Si el cliente lleva <b>{{ selectedProduct.nombre }}</b>,
+          ofrécele también:</h3>
 
         <div class="loading-state" *ngIf="loading">
           <p>Analizando patrones de compra...</p>
@@ -35,6 +40,13 @@
           <div class="product-card" *ngFor="let rec of recommendations">
             <span class="product-code">{{ rec.codigo }}</span>
             <h3 class="product-name">{{ rec.nombre }}</h3>
+
+            <!-- Sales Tip "Why" -->
+            <div class="reason-badge" *ngIf="rec.razon"
+              style="background: rgba(16, 185, 129, 0.1); color: #34d399; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; margin-bottom: 0.5rem; display: inline-block;">
+              💡 {{ rec.razon }}
+            </div>
+
             <p class="product-desc">{{ rec.descripcion || 'Sin descripción' }}</p>
             <div class="product-footer">
               <span class="product-price">{{ rec.ecomPrecio | currency:'S/.' }}</span>
@@ -44,55 +56,6 @@
       </div>
     </section>
 
-    <hr class="divider">
-
-    <!-- 2. Recomendador por Temporada -->
-    <section class="seasonal-section">
-      <h2 class="section-title">📅 Por Temporada (Tendencia Top 5)</h2>
-      <div class="controls-wrapper">
-        <select [(ngModel)]="selectedMonth" (change)="onMonthChange()">
-          <option *ngFor="let m of months" [value]="m.value">{{ m.label }}</option>
-        </select>
-      </div>
-
-      <div class="products-grid" *ngIf="seasonalRecommendations.length > 0">
-        <div class="product-card" *ngFor="let rec of seasonalRecommendations">
-          <span class="product-code">{{ rec.codigo }}</span>
-          <h3 class="product-name">{{ rec.nombre }}</h3>
-          <div class="product-footer">
-            <span class="product-price">{{ rec.ecomPrecio | currency:'S/.' }}</span>
-          </div>
-        </div>
-      </div>
-      <div class="empty-state" *ngIf="seasonalRecommendations.length === 0">
-        <p>No hay datos suficientes para este mes.</p>
-      </div>
-    </section>
-
-    <hr class="divider">
-
-    <!-- 3. Recomendador por Cliente -->
-    <section class="client-section">
-      <h2 class="section-title">👤 Por Cliente (Personalizado)</h2>
-      <p class="desc-text">Selecciona un cliente top para ver qué suele comprar:</p>
-
-      <div class="tags-container">
-        <div class="client-tag" *ngFor="let client of topClients" [class.active]="selectedClientId === client"
-          (click)="selectClient(client)">
-          Cliente ID: {{ client }}
-        </div>
-      </div>
-
-      <div class="products-grid" *ngIf="clientRecommendations.length > 0">
-        <div class="product-card" *ngFor="let rec of clientRecommendations">
-          <span class="product-code">{{ rec.codigo }}</span>
-          <h3 class="product-name">{{ rec.nombre }}</h3>
-          <div class="product-footer">
-            <span class="product-price">{{ rec.ecomPrecio | currency:'S/.' }}</span>
-          </div>
-        </div>
-      </div>
-    </section>
 
   </main>
 </div>
