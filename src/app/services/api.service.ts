@@ -8,7 +8,9 @@ export interface Producto {
     nombre: string;
     descripcion?: string;
     ecomPrecio?: number;
-    razon?: string; // New field from backend
+    razon?: string;
+    stock?: number;
+    almacen?: string;
 }
 
 @Injectable({
