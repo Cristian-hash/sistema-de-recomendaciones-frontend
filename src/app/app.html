@@ -14,15 +14,15 @@
 
       <div class="search-input-wrapper">
         <input type="text" placeholder="Ingresa el producto que el cliente va a comprar..." [(ngModel)]="searchTerm"
-          (input)="onSearchChange()" (keyup.enter)="onSearchButtonClick()" (focus)="$event.target.select()"
-          autocomplete="off">
+          (input)="onSearchChange()" (keydown)="onKeyDown($event)" (focus)="$event.target.select()" autocomplete="off">
         <button class="search-button" (click)="onSearchButtonClick()">
           ANALIZAR
         </button>
       </div>
 
       <ul class="search-results" *ngIf="searchResults.length > 0">
-        <li *ngFor="let result of searchResults" (click)="selectProduct(result)">
+        <li *ngFor="let result of searchResults; let i = index" (click)="selectProduct(result)"
+          [class.selected]="i === selectedIndex" (mouseenter)="selectedIndex = i">
           <div style="display: flex; justify-content: space-between; width: 100%;">
             <span>{{ result.nombre }}</span>
             <span style="font-size: 0.8rem; color: #aaa;">

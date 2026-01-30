@@ -40,7 +40,7 @@ export class App implements OnInit {
 
   ngOnInit() {
     this.searchSubject.pipe(
-      debounceTime(300),
+      debounceTime(150), // OPTIMIZATION: Faster response (was 300)
       distinctUntilChanged(),
       switchMap(term => this.apiService.searchProducts(term))
     ).subscribe(results => {
@@ -51,13 +51,41 @@ export class App implements OnInit {
     this.loadTopClients();
   }
 
+  selectedIndex: number = -1; // For keyboard navigation
+
   onSearchChange() {
     // Si el usuario empieza a escribir algo nuevo/distinto, limpiamos la selección anterior
     if (this.selectedProduct && this.searchTerm !== this.selectedProduct.nombre) {
       this.selectedProduct = null;
       this.recommendations = [];
     }
+    this.selectedIndex = -1; // Reset selection index
     this.searchSubject.next(this.searchTerm);
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (this.searchResults.length === 0) return;
+
+    if (event.key === 'ArrowDown') {
+      this.selectedIndex = (this.selectedIndex + 1) % this.searchResults.length;
+      event.preventDefault(); // Prevent cursor moving in input
+    } else if (event.key === 'ArrowUp') {
+      this.selectedIndex = (this.selectedIndex - 1 + this.searchResults.length) % this.searchResults.length;
+      event.preventDefault();
+    } else if (event.key === 'Enter') {
+      event.preventDefault(); // Prevent double submit
+
+      if (this.selectedIndex >= 0 && this.selectedIndex < this.searchResults.length) {
+        // User explicitly navigated to an item
+        this.selectProduct(this.searchResults[this.selectedIndex]);
+      } else {
+        // OPTIMIZATION: "I'm Feeling Lucky" - Select the first result contextually
+        this.selectProduct(this.searchResults[0]);
+      }
+    } else if (event.key === 'Escape') {
+      this.searchResults = [];
+      this.selectedIndex = -1;
+    }
   }
 
   onSearchButtonClick() {
