@@ -52,6 +52,11 @@ export class App implements OnInit {
   }
 
   onSearchChange() {
+    // Si el usuario empieza a escribir algo nuevo/distinto, limpiamos la selección anterior
+    if (this.selectedProduct && this.searchTerm !== this.selectedProduct.nombre) {
+      this.selectedProduct = null;
+      this.recommendations = [];
+    }
     this.searchSubject.next(this.searchTerm);
   }
 

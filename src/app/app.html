@@ -14,7 +14,8 @@
 
       <div class="search-input-wrapper">
         <input type="text" placeholder="Ingresa el producto que el cliente va a comprar..." [(ngModel)]="searchTerm"
-          (input)="onSearchChange()" (keyup.enter)="onSearchButtonClick()" autocomplete="off">
+          (input)="onSearchChange()" (keyup.enter)="onSearchButtonClick()" (focus)="$event.target.select()"
+          autocomplete="off">
         <button class="search-button" (click)="onSearchButtonClick()">
           ANALIZAR
         </button>
