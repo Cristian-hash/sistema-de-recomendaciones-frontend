@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Producto } from './services/api.service';
-import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, switchMap, catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +15,12 @@ export class App implements OnInit {
   searchTerm: string = '';
   searchResults: Producto[] = [];
   selectedProduct: Producto | null = null;
+  rawRecommendations: Producto[] = []; // Store raw recs
   recommendations: Producto[] = [];
+
+  // Filter State
+  selectedWarehouse: string = 'TODOS';
+  warehouses: string[] = ['TODOS', 'QUIÑONES', 'RIVERO', 'CUZCO'];
 
   // New States
   seasonalRecommendations: Producto[] = [];
@@ -40,9 +45,14 @@ export class App implements OnInit {
 
   ngOnInit() {
     this.searchSubject.pipe(
-      debounceTime(150), // OPTIMIZATION: Faster response (was 300)
+      debounceTime(150),
       distinctUntilChanged(),
-      switchMap(term => this.apiService.searchProducts(term))
+      switchMap(term => this.apiService.searchProducts(term).pipe(
+        catchError(err => {
+          console.error('Search API Error:', err);
+          return of([]);
+        })
+      ))
     ).subscribe(results => {
       this.searchResults = results;
     });
@@ -51,16 +61,31 @@ export class App implements OnInit {
     this.loadTopClients();
   }
 
-  selectedIndex: number = -1; // For keyboard navigation
+  filterRecommendations() {
+    if (!this.rawRecommendations) return;
+
+    if (this.selectedWarehouse === 'TODOS') {
+      this.recommendations = this.rawRecommendations;
+    } else {
+      this.recommendations = this.rawRecommendations.filter(p =>
+        p.almacen && p.almacen.toUpperCase().includes(this.selectedWarehouse)
+      );
+    }
+  }
+
+  onWarehouseChange() {
+    this.filterRecommendations();
+  }
+
+  selectedIndex: number = -1;
 
   onSearchChange() {
-    // Si el usuario empieza a escribir algo nuevo/distinto, limpiamos la selección anterior
     if (this.selectedProduct && this.searchTerm !== this.selectedProduct.nombre) {
       this.selectedProduct = null;
       this.recommendations = [];
     }
-    this.selectedIndex = -1; // Reset selection index
-    this.searchSubject.next(this.searchTerm);
+    this.selectedIndex = -1;
+    this.searchSubject.next(this.searchTerm.trim()); // Trim on frontend too
   }
 
   onKeyDown(event: KeyboardEvent) {
@@ -114,7 +139,8 @@ export class App implements OnInit {
     this.loading = true;
     this.apiService.getRecommendations(productId).subscribe({
       next: (res) => {
-        this.recommendations = res;
+        this.rawRecommendations = res; // Save raw
+        this.filterRecommendations(); // Apply initial filter
         this.loading = false;
       },
       error: (err) => {

@@ -37,8 +37,20 @@
 
       <!-- Resultados Producto -->
       <div class="recommendations-container" *ngIf="selectedProduct">
-        <h3 class="sub-title" style="color: #818cf8;">💡 Si el cliente lleva <b>{{ selectedProduct.nombre }}</b>,
-          ofrécele también:</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 class="sub-title" style="color: #818cf8; margin: 0;">💡 Si el cliente lleva <b>{{ selectedProduct.nombre
+              }}</b>,
+            ofrécele también:</h3>
+
+          <!-- FILTER HERE -->
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label style="color: #94a3b8; font-size: 0.9rem;">Filtrar Almacén:</label>
+            <select [(ngModel)]="selectedWarehouse" (change)="onWarehouseChange()"
+              style="padding: 0.5rem; border-radius: 0.5rem; background: #1e293b; color: white; border: 1px solid #475569;">
+              <option *ngFor="let w of warehouses" [value]="w">{{w}}</option>
+            </select>
+          </div>
+        </div>
 
         <div class="loading-state" *ngIf="loading">
           <p>Analizando patrones de compra...</p>
