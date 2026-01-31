@@ -43,17 +43,23 @@ export class App implements OnInit {
 
   constructor(private apiService: ApiService) { }
 
+  isSearching: boolean = false; // For visual feedback
+
   ngOnInit() {
     this.searchSubject.pipe(
       debounceTime(150),
       distinctUntilChanged(),
-      switchMap(term => this.apiService.searchProducts(term).pipe(
-        catchError(err => {
-          console.error('Search API Error:', err);
-          return of([]);
-        })
-      ))
+      switchMap(term => {
+        this.isSearching = true; // Start loading
+        return this.apiService.searchProducts(term).pipe(
+          catchError(err => {
+            console.error('Search API Error:', err);
+            return of([]);
+          })
+        );
+      })
     ).subscribe(results => {
+      this.isSearching = false; // Stop loading
       this.searchResults = results;
     });
 
@@ -80,6 +86,7 @@ export class App implements OnInit {
   selectedIndex: number = -1;
 
   onSearchChange() {
+    this.searchError = null; // Clear error when typing
     if (this.selectedProduct && this.searchTerm !== this.selectedProduct.nombre) {
       this.selectedProduct = null;
       this.recommendations = [];
@@ -113,17 +120,23 @@ export class App implements OnInit {
     }
   }
 
+  searchError: string | null = null;
+
   onSearchButtonClick() {
+    this.searchError = null; // Reset error
     if (this.searchTerm.trim()) {
-      console.log('Searching for:', this.searchTerm); // Log for debugging
+      console.log('Searching for:', this.searchTerm);
       this.apiService.searchProducts(this.searchTerm).subscribe(results => {
-        console.log('Results found:', results.length); // Log for debugging
+        console.log('Results found:', results.length);
         this.searchResults = results;
         if (results.length === 0) {
-          alert('No se encontraron productos con ese nombre.');
+          this.searchError = 'No se encontraron productos con ese nombre.';
+          // Clear error after 3 seconds automatically
+          setTimeout(() => this.searchError = null, 3000);
         }
       }, err => {
         console.error('Search error:', err);
+        this.searchError = 'Ocurrió un error al buscar.';
       });
     }
   }

@@ -15,9 +15,19 @@
       <div class="search-input-wrapper">
         <input type="text" placeholder="Ingresa el producto que el cliente va a comprar..." [(ngModel)]="searchTerm"
           (input)="onSearchChange()" (keydown)="onKeyDown($event)" (focus)="$event.target.select()" autocomplete="off">
+
+        <!-- Loading Spinner -->
+        <div class="spinner" *ngIf="isSearching"></div>
+
         <button class="search-button" (click)="onSearchButtonClick()">
           ANALIZAR
         </button>
+      </div>
+
+      <!-- Error / No Results Message (Non-intrusive) -->
+      <div *ngIf="searchError"
+        style="text-align: center; margin-top: 0.5rem; color: #f87171; font-weight: 500; animation: fadeIn 0.3s;">
+        {{ searchError }}
       </div>
 
       <ul class="search-results" *ngIf="searchResults.length > 0">
