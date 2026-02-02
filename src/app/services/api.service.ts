@@ -11,6 +11,7 @@ export interface Producto {
     razon?: string;
     stock?: number;
     almacen?: string;
+    features?: string[];
 }
 
 @Injectable({
