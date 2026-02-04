@@ -141,10 +141,21 @@ export class App implements OnInit {
     }
   }
 
+  recommendationSubtitle: string = 'Para que funcioné perfecto desde hoy';
+
   selectProduct(product: Producto) {
     this.selectedProduct = product;
     this.searchTerm = product.nombre;
     this.searchResults = [];
+
+    // Dynamic Subtitle Logic
+    const name = product.nombre.toUpperCase();
+    if (name.includes('RAM') || name.includes('SSD') || name.includes('SOLID') || name.includes('DDR')) {
+      this.recommendationSubtitle = 'Para que tu PC se sienta nueva hoy mismo';
+    } else {
+      this.recommendationSubtitle = 'Para que funcioné perfecto desde hoy';
+    }
+
     this.loadRecommendations(product.id);
   }
 
