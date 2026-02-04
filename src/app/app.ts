@@ -20,7 +20,7 @@ export class App implements OnInit {
 
   // Filter State
   selectedWarehouse: string = 'TODOS';
-  warehouses: string[] = ['TODOS', 'QUIÑONES', 'RIVERO', 'CUZCO'];
+  warehouses: string[] = ['TODOS', 'A-Q001', 'A-Q002', 'A0001', 'C0001'];
 
   // New States
   seasonalRecommendations: Producto[] = [];
