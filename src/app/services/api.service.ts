@@ -18,7 +18,7 @@ export interface Producto {
     providedIn: 'root'
 })
 export class ApiService {
-    private apiUrl = 'http://localhost:5156/api/Recommendations';
+    private apiUrl = 'https://recomendador.grupoupgrade.com.pe/api/Recommendations';
 
     constructor(private http: HttpClient) { }
 
