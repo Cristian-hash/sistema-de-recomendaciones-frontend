@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Producto } from './services/api.service';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, catchError, of } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, switchMap, catchError, of, finalize, timeout } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -126,18 +126,32 @@ export class App implements OnInit {
     this.searchError = null; // Reset error
     if (this.searchTerm.trim()) {
       console.log('Searching for:', this.searchTerm);
-      this.apiService.searchProducts(this.searchTerm).subscribe(results => {
-        console.log('Results found:', results.length);
-        this.searchResults = results;
-        if (results.length === 0) {
-          this.searchError = 'No se encontraron productos con ese nombre.';
-          // Clear error after 3 seconds automatically
-          setTimeout(() => this.searchError = null, 3000);
-        }
-      }, err => {
-        console.error('Search error:', err);
-        this.searchError = 'Ocurrió un error al buscar.';
-      });
+      this.isSearching = true; // Enable loading state
+
+      this.apiService.searchProducts(this.searchTerm)
+        .pipe(
+          timeout(15000),
+          finalize(() => {
+            this.isSearching = false; // Always disable loading state
+          }))
+        .subscribe({
+          next: (results) => {
+            console.log('Results found:', results.length);
+            this.searchResults = results;
+            if (results.length === 0) {
+              this.searchError = 'No se encontraron productos con ese nombre.';
+              setTimeout(() => this.searchError = null, 3000);
+            }
+          },
+          error: (err) => {
+            console.error('Search error:', err);
+            if (err.name === 'TimeoutError') {
+              this.searchError = 'La búsqueda tardó demasiado. Intenta ser más específico.';
+            } else {
+              this.searchError = 'Ocurrió un error al buscar.';
+            }
+          }
+        });
     }
   }
 

@@ -19,8 +19,8 @@
         <!-- Loading Spinner -->
         <div class="spinner" *ngIf="isSearching"></div>
 
-        <button class="search-button" (click)="onSearchButtonClick()">
-          ANALIZAR
+        <button class="search-button" (click)="onSearchButtonClick()" [disabled]="isSearching">
+          {{ isSearching ? 'ANALIZANDO...' : 'ANALIZAR' }}
         </button>
       </div>
 

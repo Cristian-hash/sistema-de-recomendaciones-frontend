@@ -298,3 +298,11 @@ select option {
         transform: translateY(0);
     }
 }
+
+.search-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+    background: #64748b;
+}
