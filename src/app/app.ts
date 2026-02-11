@@ -47,7 +47,7 @@ export class App implements OnInit {
 
   ngOnInit() {
     this.searchSubject.pipe(
-      debounceTime(150),
+      debounceTime(400),
       distinctUntilChanged(),
       switchMap(term => {
         this.isSearching = true; // Start loading
