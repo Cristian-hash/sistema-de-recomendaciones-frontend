@@ -150,6 +150,9 @@ export class App implements OnInit, AfterViewInit {
             if (results.length === 0) {
               this.searchError = 'No se encontraron productos con ese nombre.';
               setTimeout(() => this.searchError = null, 3000);
+            } else {
+              // GOOGLE-STYLE: Auto-select the first ("most relevant") result
+              this.selectProduct(results[0]);
             }
           },
           error: (err) => {
