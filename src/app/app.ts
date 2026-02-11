@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Producto } from './services/api.service';
@@ -11,7 +11,9 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap, catchError, of,
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit {
+export class App implements OnInit, AfterViewInit {
+  @ViewChild('searchInput') searchInput!: ElementRef;
+
   searchTerm: string = '';
   searchResults: Producto[] = [];
   selectedProduct: Producto | null = null;
@@ -65,6 +67,13 @@ export class App implements OnInit {
 
     this.loadSeasonalRecommendations();
     this.loadTopClients();
+  }
+
+  ngAfterViewInit() {
+    // Auto-focus the search input
+    if (this.searchInput) {
+      this.searchInput.nativeElement.focus();
+    }
   }
 
   filterRecommendations() {

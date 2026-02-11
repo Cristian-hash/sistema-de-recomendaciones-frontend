@@ -13,8 +13,9 @@
         más ofrecerle.</p>
 
       <div class="search-input-wrapper">
-        <input type="text" placeholder="Ingresa el producto que el cliente va a comprar..." [(ngModel)]="searchTerm"
-          (input)="onSearchChange()" (keydown)="onKeyDown($event)" (focus)="$event.target.select()" autocomplete="off">
+        <input #searchInput type="text" placeholder="Ingresa el producto que el cliente va a comprar..."
+          [(ngModel)]="searchTerm" (input)="onSearchChange()" (keydown)="onKeyDown($event)"
+          (focus)="$event.target.select()" autocomplete="off">
 
         <!-- Loading Spinner -->
         <div class="spinner" *ngIf="isSearching"></div>
