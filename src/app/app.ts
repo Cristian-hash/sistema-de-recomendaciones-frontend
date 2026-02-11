@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Producto } from './services/api.service';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, catchError, of, finalize, timeout } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, switchMap, catchError, of, finalize, timeout, tap, merge, map } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -41,28 +41,70 @@ export class App implements OnInit, AfterViewInit {
     { value: 10, label: 'Octubre' }, { value: 11, label: 'Noviembre' }, { value: 12, label: 'Diciembre' }
   ];
 
-  private searchSubject = new Subject<string>();
+  private autoSearchSubject = new Subject<string>();
+  private manualSearchSubject = new Subject<string>();
 
   constructor(private apiService: ApiService) { }
 
   isSearching: boolean = false; // For visual feedback
 
   ngOnInit() {
-    this.searchSubject.pipe(
+    // 1. Pipeline for Auto-Search (Debounced)
+    const autoStream$ = this.autoSearchSubject.pipe(
       debounceTime(400),
-      distinctUntilChanged(),
-      switchMap(term => {
-        this.isSearching = true; // Start loading
+      map(term => ({ term, isManual: false }))
+    );
+
+    // 2. Pipeline for Manual Search (Immediate - Enter/Button)
+    const manualStream$ = this.manualSearchSubject.pipe(
+      map(term => ({ term, isManual: true }))
+    );
+
+    // 3. Merged Pipeline
+    merge(autoStream$, manualStream$).pipe(
+      // Custom Distinct Logic: 
+      // - Block if term is strictly same AND new is NOT manual. 
+      // - Allow if term changed OR if it is a manual override (to force selection).
+      distinctUntilChanged((prev, curr) => prev.term === curr.term && !curr.isManual),
+
+      tap(() => {
+        this.searchError = null;
+        this.isSearching = true;
+      }),
+
+      switchMap(({ term, isManual }) => {
         return this.apiService.searchProducts(term).pipe(
+          map(results => ({ results, isManual })), // Pass context through
           catchError(err => {
             console.error('Search API Error:', err);
-            return of([]);
-          })
+            this.searchError = 'Ocurrió un error al buscar.';
+            return of({ results: [], isManual });
+          }),
+          finalize(() => this.isSearching = false)
         );
       })
-    ).subscribe(results => {
-      this.isSearching = false; // Stop loading
+    ).subscribe(({ results, isManual }) => {
       this.searchResults = results;
+
+      // Handle "No Results"
+      const term = this.searchTerm.trim();
+      if (results.length === 0 && term) {
+        this.searchError = 'No se encontraron productos con ese nombre.';
+        this.recommendations = [];
+        this.selectedProduct = null;
+        // Don't auto-hide error too fast, user needs to read it
+      } else if (isManual && results.length > 0) {
+        // Synergy: Exact Code Match Priority
+        const cleanTerm = term.toUpperCase();
+        const exactMatch = results.find(r => r.codigo && r.codigo.toUpperCase() === cleanTerm);
+
+        if (exactMatch) {
+          this.selectProduct(exactMatch);
+        } else {
+          // Fallback: Auto-Select first result
+          this.selectProduct(results[0]);
+        }
+      }
     });
 
     this.loadSeasonalRecommendations();
@@ -95,17 +137,25 @@ export class App implements OnInit, AfterViewInit {
   selectedIndex: number = -1;
 
   onSearchChange() {
-    this.searchError = null; // Clear error when typing
+    this.searchError = null;
     if (this.selectedProduct && this.searchTerm !== this.selectedProduct.nombre) {
       this.selectedProduct = null;
       this.recommendations = [];
     }
     this.selectedIndex = -1;
-    this.searchSubject.next(this.searchTerm.trim()); // Trim on frontend too
+    // Feed Auto-Search Pipeline
+    this.autoSearchSubject.next(this.searchTerm.trim());
   }
 
   onKeyDown(event: KeyboardEvent) {
-    if (this.searchResults.length === 0) return;
+    // If no results yet, Enter should try to trigger a search or select first if loading finishes
+    if (this.searchResults.length === 0) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        this.onSearchButtonClick(); // Force search immediately
+      }
+      return;
+    }
 
     if (event.key === 'ArrowDown') {
       this.selectedIndex = (this.selectedIndex + 1) % this.searchResults.length;
@@ -132,38 +182,10 @@ export class App implements OnInit, AfterViewInit {
   searchError: string | null = null;
 
   onSearchButtonClick() {
-    this.searchError = null; // Reset error
-    if (this.searchTerm.trim()) {
-      console.log('Searching for:', this.searchTerm);
-      this.isSearching = true; // Enable loading state
-
-      this.apiService.searchProducts(this.searchTerm)
-        .pipe(
-          timeout(15000),
-          finalize(() => {
-            this.isSearching = false; // Always disable loading state
-          }))
-        .subscribe({
-          next: (results) => {
-            console.log('Results found:', results.length);
-            this.searchResults = results;
-            if (results.length === 0) {
-              this.searchError = 'No se encontraron productos con ese nombre.';
-              setTimeout(() => this.searchError = null, 3000);
-            } else {
-              // GOOGLE-STYLE: Auto-select the first ("most relevant") result
-              this.selectProduct(results[0]);
-            }
-          },
-          error: (err) => {
-            console.error('Search error:', err);
-            if (err.name === 'TimeoutError') {
-              this.searchError = 'La búsqueda tardó demasiado. Intenta ser más específico.';
-            } else {
-              this.searchError = 'Ocurrió un error al buscar.';
-            }
-          }
-        });
+    const term = this.searchTerm.trim();
+    if (term) {
+      // Feed Manual Pipeline
+      this.manualSearchSubject.next(term);
     }
   }
 
@@ -173,6 +195,7 @@ export class App implements OnInit, AfterViewInit {
     this.selectedProduct = product;
     this.searchTerm = product.nombre;
     this.searchResults = [];
+    this.isSearching = false; // Force stop searching visual
 
     // Dynamic Subtitle Logic
     const name = product.nombre.toUpperCase();
