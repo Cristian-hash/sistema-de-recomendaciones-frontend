@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Producto } from './services/api.service';
@@ -28,6 +28,7 @@ export class App implements OnInit, AfterViewInit {
   seasonalRecommendations: Producto[] = [];
   clientRecommendations: Producto[] = [];
   topClients: number[] = [];
+  lastSearchedTerm: string = ''; // Track what we found
 
   selectedMonth: number = new Date().getMonth() + 1; // Current month
   selectedClientId: number | null = null;
@@ -44,7 +45,7 @@ export class App implements OnInit, AfterViewInit {
   private autoSearchSubject = new Subject<string>();
   private manualSearchSubject = new Subject<string>();
 
-  constructor(private apiService: ApiService) { }
+  constructor(private apiService: ApiService, private cdr: ChangeDetectorRef) { }
 
   isSearching: boolean = false; // For visual feedback
 
@@ -74,20 +75,20 @@ export class App implements OnInit, AfterViewInit {
 
       switchMap(({ term, isManual }) => {
         return this.apiService.searchProducts(term).pipe(
-          map(results => ({ results, isManual })), // Pass context through
+          map(results => ({ results, isManual, term })), // Pass term through
           catchError(err => {
             console.error('Search API Error:', err);
             this.searchError = 'Ocurrió un error al buscar.';
-            return of({ results: [], isManual });
+            return of({ results: [], isManual, term });
           }),
           finalize(() => this.isSearching = false)
         );
       })
-    ).subscribe(({ results, isManual }) => {
+    ).subscribe(({ results, isManual, term }) => {
       this.searchResults = results;
+      this.lastSearchedTerm = term; // Track what we found
 
       // Handle "No Results"
-      const term = this.searchTerm.trim();
       if (results.length === 0 && term) {
         this.searchError = 'No se encontraron productos con ese nombre.';
         this.recommendations = [];
@@ -183,10 +184,26 @@ export class App implements OnInit, AfterViewInit {
 
   onSearchButtonClick() {
     const term = this.searchTerm.trim();
-    if (term) {
-      // Feed Manual Pipeline
-      this.manualSearchSubject.next(term);
+    if (!term) return;
+
+    // OPTIMIZATION: If results are fresh and ready, use them!
+    if (!this.isSearching && this.searchResults.length > 0 && term === this.lastSearchedTerm) {
+      const cleanTerm = term.toUpperCase();
+
+      // 1. Exact Code Match
+      const exactMatch = this.searchResults.find(r => r.codigo && r.codigo.toUpperCase() === cleanTerm);
+      if (exactMatch) {
+        this.selectProduct(exactMatch);
+        return;
+      }
+
+      // 2. Fallback to First Result ("I'm Feeling Lucky")
+      this.selectProduct(this.searchResults[0]);
+      return;
     }
+
+    // Otherwise, trigger a fresh search
+    this.manualSearchSubject.next(term);
   }
 
   recommendationSubtitle: string = 'Para que funcioné perfecto desde hoy';
@@ -210,15 +227,19 @@ export class App implements OnInit, AfterViewInit {
 
   loadRecommendations(productId: number) {
     this.loading = true;
+    this.cdr.detectChanges(); // Force update for loading state
+
     this.apiService.getRecommendations(productId).subscribe({
       next: (res) => {
-        this.rawRecommendations = res; // Save raw
-        this.filterRecommendations(); // Apply initial filter
+        this.rawRecommendations = res;
+        this.filterRecommendations();
         this.loading = false;
+        this.cdr.detectChanges(); // Force update for results
       },
       error: (err) => {
         console.error('Error loading recommendations', err);
         this.loading = false;
+        this.cdr.detectChanges(); // Force update for error state
       }
     });
   }

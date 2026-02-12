@@ -35,14 +35,12 @@ h1 {
     position: relative;
     display: flex;
     gap: 0;
-    /* Remove gap, handled by padding */
     align-items: center;
     background: rgba(15, 23, 42, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 9999px;
-    /* Pill shape */
-    padding: 0.5rem;
-    /* Padding for wrapper */
+    padding: 1rem;
+    /* Increased padding */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
@@ -61,16 +59,13 @@ h1 {
 
 input[type="text"] {
     flex: 1;
-    padding: 0.75rem 1rem;
-    /* Adjust padding */
+    padding: 0.5rem 1rem;
+    padding-right: 1rem;
     background: transparent;
-    /* Transparent background */
     border: none;
-    /* No border */
     color: #ffffff !important;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     box-shadow: none;
-    /* No shadow on input */
 }
 
 input[type="text"]:focus {
@@ -79,28 +74,7 @@ input[type="text"]:focus {
     /* Handled by wrapper */
 }
 
-/* Spinner for search */
-.spinner {
-    position: absolute;
-    right: 160px;
-    /* Position inside input, left of button */
-    /* Position inside input, left of button */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: #6366f1;
-    animation: spin 0.8s linear infinite;
-    z-index: 10;
-}
-
-@keyframes spin {
-    to {
-        transform: translateY(-50%) rotate(360deg);
-    }
-}
+/* Spinner removed */
 
 input[type="text"]:focus {
     outline: none;
@@ -110,6 +84,12 @@ input[type="text"]:focus {
 
 input[type="text"]::placeholder {
     color: #64748b;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 select {
@@ -154,23 +134,28 @@ select option {
 }
 
 .search-button {
-    padding: 1rem 2rem;
+    padding: 1rem 4rem;
+    /* Wider button */
     background: linear-gradient(to right, #6366f1, #a855f7);
     border: none;
     border-radius: 9999px;
     /* Pill shape */
-    margin-left: 0.5rem;
+    margin-left: 0;
+    /* Remove margin */
     color: white;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    /* Slightly larger text */
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
 .search-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    transform: translateY(-2px);
+    /* Slight lift */
+    box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.4);
 }
 
 /* Search Results Dropdown Styles */

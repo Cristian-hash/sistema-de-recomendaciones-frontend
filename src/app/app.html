@@ -1,6 +1,6 @@
 <div class="container">
   <header>
-    <h1>Recomendador de Productos</h1>
+    <h1>Vende+</h1>
     <p class="subtitle">Analizando el historial real para potenciar tus ventas.</p>
   </header>
 
@@ -24,11 +24,13 @@
           [(ngModel)]="searchTerm" (input)="onSearchChange()" (keydown)="onKeyDown($event)"
           (focus)="$event.target.select()" autocomplete="off">
 
-        <!-- Loading Spinner -->
-        <div class="spinner" *ngIf="isSearching"></div>
+        <!-- Spinner Removed -->
+      </div>
 
-        <button class="search-button" (click)="onSearchButtonClick()">
-          {{ isSearching ? 'ANALIZANDO...' : 'ANALIZAR' }}
+      <!-- Button Moved Below -->
+      <div style="text-align: center; margin-top: 1rem;">
+        <button class="search-button" (click)="onSearchButtonClick()" [disabled]="isSearching || loading">
+          {{ (isSearching || loading) ? 'ANALIZANDO...' : 'ANALIZAR' }}
         </button>
       </div>
 
@@ -69,8 +71,13 @@
           </div>
         </div>
 
-        <div class="loading-state" *ngIf="loading">
-          <p>Analizando patrones de compra...</p>
+        <!-- Loading State (Visual only, text moved to button) -->
+        <div class="loading-state" *ngIf="loading"
+          style="height: 100px; display: flex; align-items: center; justify-content: center;">
+          <!-- Optional: Add a small pulse or skeletal effect if desired, but for now empty/simple is cleaner -->
+          <div class="spinner-small"
+            style="width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #4ade80; border-radius: 50%; animation: spin 1s linear infinite;">
+          </div>
         </div>
 
         <div class="products-grid" *ngIf="!loading && recommendations.length > 0">
