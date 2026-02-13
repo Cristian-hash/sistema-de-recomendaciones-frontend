@@ -71,6 +71,7 @@ export class App implements OnInit, AfterViewInit {
       tap(() => {
         this.searchError = null;
         this.isSearching = true;
+        this.cdr.detectChanges(); // Force UI update for loading state
       }),
 
       switchMap(({ term, isManual }) => {
@@ -78,10 +79,17 @@ export class App implements OnInit, AfterViewInit {
           map(results => ({ results, isManual, term })), // Pass term through
           catchError(err => {
             console.error('Search API Error:', err);
-            this.searchError = 'Ocurrió un error al buscar.';
+            if (err.status === 0) {
+              this.searchError = 'No se puede conectar al servidor. Verifique su conexión.';
+            } else {
+              this.searchError = 'Ocurrió un error al buscar. Intente nuevamente.';
+            }
             return of({ results: [], isManual, term });
           }),
-          finalize(() => this.isSearching = false)
+          finalize(() => {
+            this.isSearching = false;
+            this.cdr.detectChanges(); // Force UI update when search finishes
+          })
         );
       })
     ).subscribe(({ results, isManual, term }) => {
@@ -106,6 +114,7 @@ export class App implements OnInit, AfterViewInit {
           this.selectProduct(results[0]);
         }
       }
+      this.cdr.detectChanges(); // Final update for results
     });
 
     this.loadSeasonalRecommendations();
